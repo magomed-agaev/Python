@@ -1,6 +1,5 @@
 import tkinter as tk
 from Board import Board
-from Solver import Solver
 import os
 
 class Game:
@@ -12,7 +11,6 @@ class Game:
         self.canvas.pack()
         self.pieceSize = (self.sizeScreen[0] / size[1], self.sizeScreen[1] / size[0]) 
         self.loadPictures()
-        self.solver = Solver(self.board)
 
     def loadPictures(self):
         self.images = {}
@@ -68,7 +66,4 @@ class Game:
         win_label = tk.Label(self.root, text="You Win!", font=("Helvetica", 24))
         win_label.pack()
 
-# Exemple d'utilisation
-if __name__ == "__main__":
-    game = Game((10, 10), 0.1)
-    game.run()
+
