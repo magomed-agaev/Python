@@ -12,6 +12,7 @@ class MyButton(tk.Button):
         self.number = number
         self.is_mine = False
         self.count_bomb = 0
+        self.is_open = False
 
     def __repr__(self):
         return f'MyButton{self.x}{self.y}{self.number} {self.is_mine}'
