@@ -3,6 +3,7 @@ from Button import MyButton
 from random import shuffle
 from tkinter.messagebox import showinfo
 
+# CHOIX DE COULEURS POUR CHAQUE CHIFFRE
 colors = {
     1: 'blue',
     2: 'green',
@@ -34,27 +35,40 @@ class Minesweeper:
             for j in range(Minesweeper.COLUMNS+2):
                 btn = MyButton(Minesweeper.window, x=i, y=j, number=0)
                 btn.config(command=lambda button=btn: self.click(button))
+                btn.bind("<Button-3>", self.right_click)
                 temp.append(btn)
 
             self.buttons.append(temp)
+# AJOUT DES DRAPEAUX EN CLICK DROITE
+
+    def right_click(self, event):
+        if Minesweeper.IS_GAME_OVER:
+            return
+        cur_btn = event.widget
+        if cur_btn['state'] == 'normal':
+            cur_btn['state'] = 'disabled'
+            cur_btn['text'] = '🚩'
+        elif cur_btn['text'] == '🚩':
+            cur_btn['text'] = ''
+            cur_btn['state'] = 'normal'
 
     def click(self, clicked_button: MyButton):
         if Minesweeper.IS_GAME_OVER:
             return None
-        #  AFFICHAGE DES BOMBES APRES LE 1ER CLICK
+#  AFFICHAGE DES BOMBES APRES LE 1ER CLICK
         if Minesweeper.IS_FIRST_CLICK:
             self.insert_mines(clicked_button.number)
             self.count_mines_in_buttons()
             self.print_buttons()
             Minesweeper.IS_FIRST_CLICK = False
-
+# AFFICHAGE DU GAME OVER EN CAS DE DEFAITE
         if clicked_button.is_mine:
             clicked_button.config(text="*", background='red',
                                   disabledforeground='black')
             clicked_button.is_open = True
             Minesweeper.IS_GAME_OVER = True
             showinfo('Game Over', 'You lose')
-            # SI JOUER PERDS AFFICHER LES BOMBES RESTANTES
+# SI  LE JOUER PERDS AFFICHER LES BOMBES RESTANTES
             for i in range(1, Minesweeper.ROW+1):
                 for j in range(1, Minesweeper.COLUMNS+1):
                     btn = self.buttons[i][j]
@@ -100,12 +114,40 @@ class Minesweeper:
                         if not next_btn.is_open and 1 <= next_btn.x <= Minesweeper.ROW and \
                                 1 <= next_btn.y <= Minesweeper.COLUMNS and next_btn not in queue:
                             queue.append(next_btn)
+# EFFACE LES DONNEES POUR RESTART
 
     def reload(self):
         [child.destroy() for child in self.window.winfo_children()]
         self.__init__()
         self.create_widgets()
         Minesweeper.IS_FIRST_CLICK = True
+        Minesweeper.IS_GAME_OVER = False
+
+    def create_settings_win(self):
+        win_settings = tk.Toplevel(self.window)
+        win_settings.wm_title('Settings')
+        tk.Label(win_settings, text='Rows').grid(row=0, column=0)
+        row_entry = tk.Entry(win_settings)
+        row_entry.insert(0, Minesweeper.ROW)
+        row_entry.grid(row=0, column=1, padx=20, pady=20)
+        tk.Label(win_settings, text='Columns').grid(row=1, column=0)
+        column_entry = tk.Entry(win_settings)
+        column_entry.insert(0, Minesweeper.COLUMNS)
+        column_entry.grid(row=1, column=1, padx=20, pady=20)
+        tk.Label(win_settings, text='Mines').grid(row=2, column=0)
+        mines_entry = tk.Entry(win_settings)
+        mines_entry.insert(0, Minesweeper.MINES)
+        mines_entry.grid(row=2, column=1, padx=20, pady=20)
+        save_btn = tk.Button(win_settings, text='OK',
+                             command=lambda: self.change_settings(row_entry, column_entry, mines_entry))
+        save_btn.grid(row=3, column=0, columnspan=2)
+
+    def change_settings(self, row: tk.Entry, columns: tk.Entry, mines: tk.Entry):
+
+        Minesweeper.ROW = int(row.get())
+        Minesweeper.COLUMNS = int(columns.get())
+        Minesweeper.ROW = int(mines.get())
+        self.reload()
 
     def create_widgets(self):
         # MENU DU JEU
@@ -113,11 +155,12 @@ class Minesweeper:
         self.window.config(menu=menubar)
         settings_menu = tk.Menu(menubar)
         settings_menu.add_command(label='Play', command=self.reload)
-        settings_menu.add_command(label='Settings')
+        settings_menu.add_command(
+            label='Settings', command=self.create_settings_win)
         settings_menu.add_command(label='Exit', command=self.window.destroy)
         menubar.add_cascade(label='Menu', menu=settings_menu)
         count = 1
-        # RANGEMENT DES BUTTONS AVEC GRID
+# RANGEMENT DES BUTTONS AVEC GRID
         for i in range(1, Minesweeper.ROW+1):
             for j in range(1, Minesweeper.COLUMNS+1):
                 btn = self.buttons[i][j]
@@ -132,7 +175,7 @@ class Minesweeper:
 # APPEL DES FUNCTIONS CREES
 
     def open_all_buttons(self):
-        # RANGEMENT DES BUTTONS AVEC GRID
+     # RANGEMENT DES BUTTONS AVEC GRID
         for i in range(Minesweeper.ROW+2):
             for j in range(Minesweeper.COLUMNS+2):
                 btn = self.buttons[i][j]
