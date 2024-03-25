@@ -39,11 +39,14 @@ class Minesweeper:
             self.buttons.append(temp)
 
     def click(self, clicked_button: MyButton):
+        if Minesweeper.IS_GAME_OVER:
+            return None
         #  AFFICHAGE DES BOMBES APRES LE 1ER CLICK
         if Minesweeper.IS_FIRST_CLICK:
             self.insert_mines(clicked_button.number)
             self.count_mines_in_buttons()
             self.print_buttons()
+            Minesweeper.IS_FIRST_CLICK = False
 
         if clicked_button.is_mine:
             clicked_button.config(text="*", background='red',
@@ -98,15 +101,34 @@ class Minesweeper:
                                 1 <= next_btn.y <= Minesweeper.COLUMNS and next_btn not in queue:
                             queue.append(next_btn)
 
+    def reload(self):
+        [child.destroy() for child in self.window.winfo_children()]
+        self.__init__()
+        self.create_widgets()
+        Minesweeper.IS_FIRST_CLICK = True
+
     def create_widgets(self):
+        # MENU DU JEU
+        menubar = tk.Menu(self.window)
+        self.window.config(menu=menubar)
+        settings_menu = tk.Menu(menubar)
+        settings_menu.add_command(label='Play', command=self.reload)
+        settings_menu.add_command(label='Settings')
+        settings_menu.add_command(label='Exit', command=self.window.destroy)
+        menubar.add_cascade(label='Menu', menu=settings_menu)
         count = 1
         # RANGEMENT DES BUTTONS AVEC GRID
         for i in range(1, Minesweeper.ROW+1):
             for j in range(1, Minesweeper.COLUMNS+1):
                 btn = self.buttons[i][j]
                 btn.number = count
-                btn.grid(row=i, column=j)
+                btn.grid(row=i, column=j, stick='NWES')
                 count += 1
+
+        for i in range(1, Minesweeper.ROW + 1):
+            tk.Grid.rowconfigure(self.window, i, weight=1)
+        for i in range(1, Minesweeper.COLUMNS + 1):
+            tk.Grid.columnconfigure(self.window, i, weight=1)
 # APPEL DES FUNCTIONS CREES
 
     def open_all_buttons(self):
